@@ -7,3 +7,5 @@ sentencepiece
 datasets
 # required for transformers trainer
 accelerate>=0.20.1
+# we're using their flop counters
+xformers

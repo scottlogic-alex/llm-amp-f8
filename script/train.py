@@ -1,18 +1,20 @@
 from transformers import GPTNeoXTokenizerFast
-from flash_attn.models.gpt import GPTLMHeadModel, GPT2Config
+from flash_attn.models.gpt import GPT2Config
 from flash_attn.models.gpt_neox import GPTNeoXConfig, gpt_neox_config_to_gpt2_config
 from dataclasses import dataclass, field
-from typing import Optional, TypedDict, Dict
+from typing import Optional, TypedDict, Dict, List
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from datasets.formatting.formatting import LazyRow
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
+from transformers.trainer_callback import TrainerCallback
 import torch
 from torch.cuda.amp import autocast
 
 from llm_fp8.collator import DataCollatorForCausalLM
 from llm_fp8.causal_gpt import CausalGPTLMHeadModel
+from llm_fp8.flops.flops_callback import FlopsCallback
 
 cache_dir: Optional[str] = None
 
@@ -107,6 +109,7 @@ data_collator = DataCollatorForCausalLM(
   output_mask=False,
 )
 
+callbacks: List[TrainerCallback] = [FlopsCallback()]
 trainer = Seq2SeqTrainer(
   model=model,
   tokenizer=tokenizer,
@@ -114,6 +117,7 @@ trainer = Seq2SeqTrainer(
   args=train_args,
   train_dataset=train_dataset,
   eval_dataset=test_dataset,
+  callbacks=callbacks,
 )
 with autocast(dtype=torch.bfloat16):
   trainer.train()
