@@ -1,5 +1,3 @@
-# import torch
-# from torch.optim import AdamW
 from transformers import GPTNeoXTokenizerFast
 from flash_attn.models.gpt import GPTLMHeadModel, GPT2Config
 from flash_attn.models.gpt_neox import GPTNeoXConfig, gpt_neox_config_to_gpt2_config
@@ -10,6 +8,8 @@ from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from datasets.formatting.formatting import LazyRow
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
+import torch
+from torch.cuda.amp import autocast
 
 from llm_fp8.collator import DataCollatorForCausalLM
 from llm_fp8.causal_gpt import CausalGPTLMHeadModel
@@ -19,6 +19,7 @@ cache_dir: Optional[str] = None
 model_name = 'EleutherAI/pythia-70m-deduped'
 gpt_neox_config = GPTNeoXConfig.from_pretrained(model_name, cache_dir=cache_dir)
 gpt2_config: GPT2Config = gpt_neox_config_to_gpt2_config(gpt_neox_config)
+gpt2_config.use_flash_attn = True
 model: CausalGPTLMHeadModel = CausalGPTLMHeadModel.from_pretrained(model_name, gpt2_config)
 
 DEFAULT_PAD_TOKEN = '[PAD]'
@@ -114,4 +115,5 @@ trainer = Seq2SeqTrainer(
   train_dataset=train_dataset,
   eval_dataset=test_dataset,
 )
-trainer.train()
+with autocast(dtype=torch.bfloat16):
+  trainer.train()
