@@ -1,0 +1,9 @@
+torch>=2.1.0
+# believe it or not (flash-attn uses torchvision.ops::StochasticDepth)
+torchvision
+flash-attn
+transformers
+sentencepiece
+datasets
+# required for transformers trainer
+accelerate>=0.20.1

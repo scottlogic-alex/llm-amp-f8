@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "name": "Python: Train Pythia",
+      "type": "python",
+      "request": "launch",
+      "module": "script.train",
+      "justMyCode": false
+    }
+  ]
+}
